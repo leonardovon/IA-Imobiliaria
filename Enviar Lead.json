@@ -1,0 +1,377 @@
+{
+  "name": "Enviar Lead",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "67693b9f-8e67-4afe-8d69-d74df3f30cc5",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -672,
+        624
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Configurações do workflow\nconst config = {\n  evolutionApiUrl: 'https://ia-imobiliaria-evolution-api.mq3xca.easypanel.host', // ALTERE AQUI\n  apiKey: '429683C4C977415CAAFCCE10F7D57E11fgdfgty6454EDFGGHGG', // ALTERE AQUI\n  instanceName: 'IA-Imobiliaria' // ALTERE AQUI\n};\n\n// Dados do contato e labels\nconst chatData = {\n  phoneNumber: $input.first().json.telefone, // ALTERE: Número do WhatsApp (sem @ e domínio)\n  labelsToAdd: ['Importante'], // ALTERE: Labels para adicionar\n  labelsToRemove: [] // ALTERE: Labels para remover (deixe vazio [] se não quiser remover)\n};\n\n// Formar o remoteJid corretamente\nconst remoteJid = chatData.phoneNumber.includes('@') ? \n  chatData.phoneNumber : \n  `${chatData.phoneNumber}@s.whatsapp.net`;\n\n// Preparar dados para próximo nó\nreturn [{\n  json: {\n    config,\n    chatData: {\n      ...chatData,\n      remoteJid\n    }\n  }\n}];"
+      },
+      "id": "43eccfaa-5a15-42e1-8849-2aeac227e238",
+      "name": "Configurações",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -464,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "condition1",
+              "leftValue": "={{ $json.chatData.labelsToAdd.length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a673edcd-3a4f-4081-88ff-620f28e4931a",
+      "name": "Tem Labels para Adicionar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -16,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "condition1",
+              "leftValue": "={{ $json.chatData.labelsToRemove.length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "aed34c89-cbda-4597-a204-7d7e3ec68c84",
+      "name": "Tem Labels para Remover?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -16,
+        912
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Processar resposta e exibir resultado\nconst chatInfo = $input.all()[0].json;\n\nlet result = {\n  success: true,\n  message: 'Labels atualizados com sucesso!',\n  timestamp: new Date().toISOString()\n};\n\n// Verificar se há erros\nif (chatInfo.error) {\n  result.success = false;\n  result.message = `Erro: ${chatInfo.error}`;\n}\n\nconsole.log('Resultado da operação:', result);\n\nreturn [{ json: result }];"
+      },
+      "id": "7f02eeec-b78b-4a54-9f0f-d9c7acbdfd6e",
+      "name": "Processar Resultado",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -208,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.config.evolutionApiUrl }}/label/findLabels//{{ $json.config.instanceName }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $json.config.apiKey }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "65ba28fe-2897-4ca6-ae71-70ee2ceab070",
+      "name": "Listar Labels Disponíveis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -16,
+        1104
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.config.evolutionApiUrl }}/label/handleLabel/{{ $json.config.instanceName }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $json.config.apiKey }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $json.chatData.remoteJid }}"
+            },
+            {
+              "name": "labelId",
+              "value": "6"
+            },
+            {
+              "name": "action",
+              "value": "add"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "aef0492e-adc2-44ab-9f06-1abdd31b07da",
+      "name": "Atribiur Label",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        256,
+        704
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.config.evolutionApiUrl }}/label/handleLabel/{{ $json.config.instanceName }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $json.config.apiKey }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $json.chatData.remoteJid }}"
+            },
+            {
+              "name": "labelId",
+              "value": "6"
+            },
+            {
+              "name": "action",
+              "value": "remove"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "cccce0f3-0d22-4814-9ab5-ce49e18a0557",
+      "name": "Remover Label",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        256,
+        896
+      ]
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        192,
+        1104
+      ],
+      "id": "65e74040-9bbd-4406-9651-54af3817d6ac",
+      "name": "No Operation, do nothing1"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "telefone"
+            },
+            {
+              "name": "nome"
+            },
+            {
+              "name": "perfilimovel"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -688,
+        448
+      ],
+      "id": "56353e71-6224-49e4-9662-239b0d240db9",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "sendTo": "=leonardovon@gmail.com, chrisvon@imobiliariadrumond.com.br",
+        "subject": "[Novo Lead]",
+        "message": "=<!DOCTYPE html>\n<html lang=\"pt-BR\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Novo Lead Recebido - IA Imobiliária</title>\n    <style>\n        body {\n            margin: 0;\n            padding: 20px;\n            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n            background-color: #f8fafc;\n            color: #333333;\n            line-height: 1.6;\n        }\n        .container {\n            max-width: 600px;\n            margin: 0 auto;\n            background: white;\n            border-radius: 16px;\n            box-shadow: 0 10px 30px rgba(0,0,0,0.1);\n            overflow: hidden;\n        }\n        .header {\n            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);\n            color: white;\n            padding: 40px 30px;\n            text-align: center;\n        }\n        .header h1 {\n            margin: 0;\n            font-size: 28px;\n            font-weight: 700;\n        }\n        .content {\n            padding: 40px 30px;\n        }\n        .greeting {\n            font-size: 18px;\n            margin-bottom: 20px;\n            color: #4f46e5;\n            font-weight: 600;\n        }\n        .message {\n            font-size: 16px;\n            margin-bottom: 30px;\n            color: #555555;\n        }\n        .cta-button {\n            display: inline-block;\n            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);\n            color: white;\n            padding: 16px 32px;\n            text-decoration: none;\n            border-radius: 8px;\n            font-weight: 600;\n            text-align: center;\n            margin: 20px 0;\n            transition: transform 0.2s ease;\n        }\n        .cta-button:hover {\n            transform: translateY(-2px);\n        }\n        .data-section {\n            background: #f8fafc;\n            padding: 20px;\n            border-radius: 8px;\n            margin: 20px 0;\n            border-left: 4px solid #4f46e5;\n        }\n        .data-item {\n            margin: 10px 0;\n            font-family: 'Courier New', monospace;\n            font-size: 14px;\n        }\n        .footer {\n            background: #f8fafc;\n            padding: 30px;\n            text-align: center;\n            color: #666666;\n            font-size: 14px;\n        }\n        .badge {\n            display: inline-block;\n            background: #4f46e5;\n            color: white;\n            padding: 4px 12px;\n            border-radius: 20px;\n            font-size: 12px;\n            font-weight: 600;\n            margin: 5px;\n        }\n    </style>\n</head>\n<body>\n    <div class=\"container\">\n        <div class=\"header\">\n            <h1>✨ Novo Lead Recebido - IA Imobiliária</h1>\n        </div>\n        \n        <div class=\"content\">\n            <div class=\"greeting\">Olá! Temos uma novidade importante para você.</div>\n            \n            <div class=\"message\">Recebemos um novo lead interessado em seus serviços imobiliários através do WhatsApp.</div>\n            \n            <div class=\"data-section\">\n                <h3 style=\"color: #4f46e5; margin-top: 0;\">📱 Informações do Lead:</h3>\n                <div class=\"data-item\"><strong>Telefone:</strong>{{$('Configurações').item.json.chatData.phoneNumber }}</div>\n                <div class=\"data-item\"><strong>Nome:</strong>{{ $('When Executed by Another Workflow').item.json.nome }}</div>\n                <div class=\"data-item\"><strong>Perfil Desejado:</strong>{{ $('When Executed by Another Workflow').item.json.perfilimovel }}</div>       \n<center>\n        <div class=\"footer\">\n            <p>IA Imobiliária - Automatizando seu sucesso</p>\n            <div>\n                <span class=\"badge\">Todos os direitos reservados</span>\n            </div>\n        </div>\n</center>\n    </div>\n</body>\n</html>\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -16,
+        448
+      ],
+      "id": "d26b259b-b416-47f8-baed-26822c9a6ae6",
+      "name": "Send a message",
+      "webhookId": "411facf7-d4fc-4e75-ab39-bfdf012528ec",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "UrAVl5d0AbaxmIlT",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "telefone": "48 3194-1794",
+          "nome": "Leonardo",
+          "perfilimovel": "Interesse em um apartamento de 3 quartos no Estreito, com valor de até R$ 550.000. Busca informações sobre financiamento e deseja visitar o imóvel."
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Configurações": {
+      "main": [
+        [
+          {
+            "node": "Processar Resultado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem Labels para Adicionar?": {
+      "main": [
+        [
+          {
+            "node": "Atribiur Label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem Labels para Remover?": {
+      "main": [
+        [
+          {
+            "node": "Remover Label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remover Label": {
+      "main": [
+        []
+      ]
+    },
+    "Atribiur Label": {
+      "main": [
+        []
+      ]
+    },
+    "Processar Resultado": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Listar Labels Disponíveis": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Configurações",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e90c8de1-55e4-4f2a-ac23-68b713ecba65",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1b3bc2ce63301dd1c1cc8276fa1e9d44ec710430df713f3dc77caa7ab81d57d3"
+  },
+  "id": "YW632jSuUmAu1ffN",
+  "tags": []
+}
