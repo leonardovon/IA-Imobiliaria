@@ -1,0 +1,115 @@
+{
+  "name": "ErrorHandler",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "0cfba579-87b9-46de-ad47-0d583c13ad78",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -704,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "-1003049387226",
+        "text": "=🚨 *ALERTA DE PACIENTE* 🚨\n\n*Status:* NECESSITA ATENÇÃO IMEDIATA\n*Paciente:* {{ $('When Executed by Another Workflow').item.json.nome }}\n*Telefone:* {{ $('When Executed by Another Workflow').item.json.telefone }}\n*Etiqueta:* \"Necessita Atenção\"\n\n⏰ *Horário do Alerta:* {{ $now.setZone('America/Sao_Paulo').toFormat('dd/MM/yyyy HH:mm:ss') }}\n\n📱 *Última Mensagem enviada:* {{ $('When Executed by Another Workflow').item.json.ultima_mensagem }}\n\n⚠️ *AÇÃO NECESSÁRIA:* Contato imediato com o paciente\n\n",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -336,
+        400
+      ],
+      "id": "69b2b76c-d67e-4970-9219-8903558051b8",
+      "name": "Send a text message",
+      "webhookId": "46d3b254-c19f-4567-80d1-a1146538a16c",
+      "alwaysOutputData": true,
+      "notesInFlow": false,
+      "credentials": {
+        "telegramApi": {
+          "id": "PtByZshCEnmQ6D5o",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "\n\t{\n\t\t\"execution\": {\n\t\t\t\"id\": \"231\",\n\t\t\t\"url\": \"https://n8n.example.com/execution/231\",\n\t\t\t\"retryOf\": \"34\",\n\t\t\t\"error\": {\n\t\t\t\t\"message\": \"Example Error Message\",\n\t\t\t\t\"stack\": \"Stacktrace\"\n\t\t\t},\n\t\t\t\"lastNodeExecuted\": \"Node With Error\",\n\t\t\t\"mode\": \"manual\"\n\t\t},\n\t\t\"workflow\": {\n\t\t\t\"id\": \"1\",\n\t\t\t\"name\": \"Example Workflow\"\n\t\t}\n\t}\n"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -704,
+        480
+      ],
+      "id": "5c66bd9d-4205-423c-b621-3f2e0a9d9318",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "sendTo": "leonardovon@gmail.com",
+        "subject": "[Erro Workflow!]",
+        "message": "=<!DOCTYPE html>\n<html lang=\"pt-BR\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Erro IA Imobiliária</title>\n    <style>\n        body {\n            margin: 0;\n            padding: 20px;\n            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n            background-color: #f8fafc;\n            color: #333333;\n            line-height: 1.6;\n        }\n        .container {\n            max-width: 600px;\n            margin: 0 auto;\n            background: white;\n            border-radius: 16px;\n            box-shadow: 0 10px 30px rgba(0,0,0,0.1);\n            overflow: hidden;\n        }\n        .header {\n            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);\n            color: white;\n            padding: 40px 30px;\n            text-align: center;\n        }\n        .header h1 {\n            margin: 0;\n            font-size: 28px;\n            font-weight: 700;\n        }\n        .content {\n            padding: 40px 30px;\n        }\n        .greeting {\n            font-size: 18px;\n            margin-bottom: 20px;\n            color: #4f46e5;\n            font-weight: 600;\n        }\n        .message {\n            font-size: 16px;\n            margin-bottom: 30px;\n            color: #555555;\n        }\n        .cta-button {\n            display: inline-block;\n            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);\n            color: white;\n            padding: 16px 32px;\n            text-decoration: none;\n            border-radius: 8px;\n            font-weight: 600;\n            text-align: center;\n            margin: 20px 0;\n            transition: transform 0.2s ease;\n        }\n        .cta-button:hover {\n            transform: translateY(-2px);\n        }\n        .data-section {\n            background: #f8fafc;\n            padding: 20px;\n            border-radius: 8px;\n            margin: 20px 0;\n            border-left: 4px solid #4f46e5;\n        }\n        .data-item {\n            margin: 10px 0;\n            font-family: 'Courier New', monospace;\n            font-size: 14px;\n        }\n        .footer {\n            background: #f8fafc;\n            padding: 30px;\n            text-align: center;\n            color: #666666;\n            font-size: 14px;\n        }\n        .badge {\n            display: inline-block;\n            background: #4f46e5;\n            color: white;\n            padding: 4px 12px;\n            border-radius: 20px;\n            font-size: 12px;\n            font-weight: 600;\n            margin: 5px;\n        }\n    </style>\n</head>\n<body>\n    <div class=\"container\">\n        <div class=\"header\">\n            <h1> Erro - IA Imobiliária</h1>\n        </div>\n                <div class=\"data-item\"><strong>Exec ID:</strong>{{ $execution.id }}</div><br>\n                <div class=\"data-item\"><strong>Workflow ID:</strong>\n{{ $workflow.id }}\n</div>\n               \n<center>\n        <div class=\"footer\">\n            <p>IA Imobiliária - Automatizando seu sucesso</p>\n            <div>\n                <span class=\"badge\">Todos os direitos reservados</span>\n            </div>\n        </div>\n</center>\n    </div>\n</body>\n</html>\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -432,
+        576
+      ],
+      "id": "17686daa-a9be-4ac1-ac9c-9258b32359d7",
+      "name": "Send a message",
+      "webhookId": "69e0d058-ecf1-471c-bb92-e6563873728c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "UrAVl5d0AbaxmIlT",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d7e909d9-0089-4282-abe5-846f1c612751",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1b3bc2ce63301dd1c1cc8276fa1e9d44ec710430df713f3dc77caa7ab81d57d3"
+  },
+  "id": "eIhL7qjBZeHEY2x7",
+  "tags": []
+}
